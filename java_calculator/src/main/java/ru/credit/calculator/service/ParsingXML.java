@@ -12,7 +12,7 @@ import java.io.*;
 
 public class ParsingXML {
 
-  public static InitialParameters unmarshalXML(String path) throws JAXBException, FileNotFoundException {
+  public static InitialParameters unmarshalXML(String path) throws JAXBException {
     try (InputStream file = new FileInputStream(path)) {
       JAXBContext jaxbContext = null;
       try {

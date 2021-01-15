@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<InitialParameters>
+  <modelCredit>differentiated</modelCredit>
+  <loanSum>900000</loanSum>
+  <numberOfPeriods>120</numberOfPeriods>
+  <interestRate>15.7</interestRate>
+  <date>2011-05</date>
+</InitialParameters>

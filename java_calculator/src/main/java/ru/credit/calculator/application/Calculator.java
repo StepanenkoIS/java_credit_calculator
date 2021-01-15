@@ -62,7 +62,7 @@ n — количество процентных периодов во всем �
       if (i == (parameters.getNumberOfPeriods().intValue())) {
         credit.setRepaymentRate(accruedInterest)
             .setPayment(accruedInterest.add(repayment).add(loanSum))
-            .setRepayment(repayment.add(loanSum));
+            .setRepayment(calculationLastRepayment(credits, parameters.getLoanSum()));
       } else {
         credit.setRepaymentRate(accruedInterest).setPayment(accruedInterest.add(repayment));
       }
@@ -73,6 +73,32 @@ n — количество процентных периодов во всем �
 
   /*
   https://temabiz.com/finterminy/ap-formula-i-raschet-annuitetnogo-platezha.html
+
+  Формула расчета аннуитетных платежей:
+  P = S * (i + (i / ((1 + i)^n - 1))), где
+  P – ежемесячный платёж по аннуитетному кредиту (аннуитетный платёж, не изменяется в течение всего периода погашения кредита);
+  S – сумма кредита;
+  i – ежемесячная процентная ставка (рассчитывается по следующей формуле: годовая процентная ставка/100/12);
+  n – срок, на который берётся кредит (указывается количество месяцев).
+
+  Расчёт процентов по аннуитетным платежам:
+  In = Sn * i, где
+  In – сумма в аннуитетном платеже, которая идёт на погашение процентов по кредиту;
+  Sn – сумма оставшейся задолженности по кредиту (остаток по кредиту);
+  i – ежемесячная процентная ставка;
+
+  Расчёт доли тела кредита в аннуитетных платежах:
+  S = P - In, где
+  S – сумма в аннуитетном платеже, которая идёт на погашение тела кредита;
+  P – ежемесячный аннуитетный платёж;
+  In – сумма в аннуитетном платеже, которая идёт на погашение процентов по кредиту.
+
+  Рассчет долга на конец месяца:
+  Sn2 = Sn1 - S, где
+  Sn2 – долг на конец месяца по аннуитетному кредиту;
+  Sn1 – сумма текущей задолженности по кредиту;
+  S – сумма в аннуитетном платеже, которая идёт на погашение тела кредита.
+
   */
 
   private static List<Credit> calculationAuthentic(InitialParameters parameters) {
@@ -96,13 +122,27 @@ n — количество процентных периодов во всем �
       repaymentRate = repayment * rateMonth;
       repayment = repayment - payment + repaymentRate;
 
+      if (i == (parameters.getNumberOfPeriods().intValue())) {
+        credit.setRepayment(calculationLastRepayment(credits, parameters.getLoanSum()));
+      } else {
+        credit.setRepayment(new BigDecimal(payment - repaymentRate));
+      }
       credits.add(credit.setIndex(i)
           .setDate(month.toString())
           .setPayment(new BigDecimal(payment))
-          .setRepayment(new BigDecimal(payment - repaymentRate))
           .setRepaymentRate(new BigDecimal(repaymentRate)));
+
     }
     return credits;
 
+  }
+
+  //расчет Repayment - последнего платежа
+  private static BigDecimal calculationLastRepayment(List<Credit> credits, BigDecimal loanSum) {
+    BigDecimal decimal = new BigDecimal("0.00").setScale(2, BigDecimal.ROUND_HALF_UP);
+    for (Credit credit : credits) {
+      decimal = decimal.add(credit.getRepayment());
+    }
+    return loanSum.subtract(decimal);
   }
 }
